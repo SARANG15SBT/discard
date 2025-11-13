@@ -40,29 +40,41 @@ function filterResults(category, query) {
   });
 }
 
-// -------------------- Table rendering --------------------
-function renderTable(results) {
-  const tbody = document.querySelector('#resultsTable tbody');
-  if (!tbody) return;
-
-  tbody.innerHTML = '';
-
-  if (!Array.isArray(results) || results.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No results found</td></tr>`;
-    return;
-  }
-
-  results.forEach(p => {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${p.id}</td>
-      <td>${p.symbol}</td>
-      <td>${p.description}</td>
-      <td>${p.taxonomicName}</td>
-      <td>${p.geneType}</td>
-    `;
-    tbody.appendChild(row);
-  });
+// -------------------- Render full page --------------------
+function renderPage(results) {
+  // Replace the entire body with only results
+  document.body.innerHTML = `
+    <h2 style="text-align:center;">Search Results</h2>
+    <table border="1" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Symbol</th>
+          <th>Description</th>
+          <th>Organism</th>
+          <th>Gene Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${
+          results.length
+            ? results.map(p => `
+              <tr>
+                <td>${p.id}</td>
+                <td>${p.symbol}</td>
+                <td>${p.description}</td>
+                <td>${p.taxonomicName}</td>
+                <td>${p.geneType}</td>
+              </tr>
+            `).join('')
+            : `<tr><td colspan="5" style="text-align:center;">No results found</td></tr>`
+        }
+      </tbody>
+    </table>
+    <div style="text-align:center; margin-top:20px;">
+      <button onclick="window.location.href=window.location.pathname">Back to full list</button>
+    </div>
+  `;
 }
 
 // -------------------- Search trigger --------------------
@@ -70,22 +82,12 @@ function performSearch() {
   const category = toLower(document.getElementById('categorySelect')?.value);
   const query = toLower(document.getElementById('searchInput')?.value);
 
-  // Reload page with query params
-  const params = new URLSearchParams();
-  if (category) params.set('category', category);
-  if (query) params.set('query', query);
-
-  window.location.search = params.toString();
+  const results = filterResults(category, query);
+  renderPage(results);
 }
 
 // -------------------- Load & boot --------------------
 document.addEventListener('DOMContentLoaded', () => {
-  const categoryEl = document.getElementById('categorySelect');
-  const searchBtn = document.querySelector('.search-bar button');
-
-  if (categoryEl) categoryEl.addEventListener('change', performSearch);
-  if (searchBtn) searchBtn.addEventListener('click', performSearch);
-
   const jsonURL = 'https://sarang15sbt.github.io/protein-database/proteins.json';
 
   fetch(jsonURL)
@@ -94,24 +96,19 @@ document.addEventListener('DOMContentLoaded', () => {
       proteinData = ensureArray(data).map(normalizeRecord);
       dataReady = true;
 
-      // Read params from URL
-      const params = new URLSearchParams(window.location.search);
-      const category = toLower(params.get('category'));
-      const query = toLower(params.get('query'));
+      // Wire up search button
+      const searchBtn = document.querySelector('.search-bar button');
+      if (searchBtn) searchBtn.addEventListener('click', performSearch);
 
-      // Pre-fill inputs
-      if (categoryEl) categoryEl.value = category || '';
-      const searchInput = document.getElementById('searchInput');
-      if (searchInput) searchInput.value = query || '';
+      // Wire up dropdown
+      const categoryEl = document.getElementById('categorySelect');
+      if (categoryEl) categoryEl.addEventListener('change', performSearch);
 
-      // Filter if params exist, else show all
-      const results = (category || query)
-        ? filterResults(category, query)
-        : proteinData;
-
-      renderTable(results);
+      // Initial view: show full table
+      renderPage(proteinData);
     })
     .catch(err => {
       console.error('Error loading JSON:', err);
+      renderPage([]);
     });
 });
