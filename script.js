@@ -53,24 +53,38 @@ function prevSlide() {
 
 // ✅ Search function with category
 function performSearch() {
-  const category = document.getElementById('categorySelect').value;
   const query = document.getElementById('searchInput').value.toLowerCase();
 
   const results = proteinData.filter(protein => {
-    const matchesQuery = query
-      ? (protein["Dark_protein ID"].toLowerCase().includes(query) ||
-         protein.ncbi_gene_Symbol.toLowerCase().includes(query) ||
-         protein.Description.toLowerCase().includes(query) ||
-         protein.TaxonomicName.toLowerCase().includes(query))
-      : true;
-
-    const matchesCategory = category
-      ? protein.GeneType.toLowerCase() === category.toLowerCase()
-      : true;
-
-    return matchesQuery && matchesCategory;
+    // Match if query matches GeneType OR other fields
+    return (
+      protein.GeneType.toLowerCase().includes(query) ||
+      protein["Dark_protein ID"].toLowerCase().includes(query) ||
+      protein.ncbi_gene_Symbol.toLowerCase().includes(query) ||
+      protein.Description.toLowerCase().includes(query) ||
+      protein.TaxonomicName.toLowerCase().includes(query)
+    );
   });
 
   console.log("Search results:", results);
-  renderCarousel(results.slice(0, 3)); // show first 3 results
+  renderCarousel(results.slice(0, 3)); // preview in carousel
+  renderTable(results); // full details in table
 }
+function renderTable(results) {
+  const tbody = document.querySelector('#resultsTable tbody');
+  tbody.innerHTML = '';
+
+  results.forEach(protein => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${protein["Dark_protein ID"]}</td>
+      <td>${protein.ncbi_gene_Symbol}</td>
+      <td>${protein.Description}</td>
+      <td>${protein.TaxonomicName}</td>
+      <td>${protein.GeneType}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+
