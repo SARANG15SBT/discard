@@ -54,22 +54,68 @@ function prevSlide() {
 // ✅ Search function with category
 function performSearch() {
   const query = document.getElementById('searchInput').value.toLowerCase();
+  const category = document.getElementById('categorySelect').value;
 
   const results = proteinData.filter(protein => {
-    // Match if query matches GeneType OR other fields
-    return (
-      protein.GeneType.toLowerCase().includes(query) ||
-      protein["Dark_protein ID"].toLowerCase().includes(query) ||
-      protein.ncbi_gene_Symbol.toLowerCase().includes(query) ||
-      protein.Description.toLowerCase().includes(query) ||
-      protein.TaxonomicName.toLowerCase().includes(query)
-    );
+    const matchesQuery = query
+      ? (protein["Dark_protein ID"].toLowerCase().includes(query) ||
+         protein.ncbi_gene_Symbol.toLowerCase().includes(query) ||
+         protein.Description.toLowerCase().includes(query) ||
+         protein.TaxonomicName.toLowerCase().includes(query) ||
+         protein.GeneType.toLowerCase().includes(query))
+      : true;
+
+    const matchesCategory = category
+      ? protein.GeneType.toLowerCase() === category.toLowerCase()
+      : true;
+
+    return matchesQuery && matchesCategory;
   });
 
   console.log("Search results:", results);
-  renderCarousel(results.slice(0, 3)); // preview in carousel
-  renderTable(results); // full details in table
+
+  // ✅ Open a new window
+  const resultWindow = window.open("", "ResultsWindow", "width=1000,height=600");
+  resultWindow.document.write(`
+    <html>
+    <head>
+      <title>Search Results</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #333; color: white; }
+      </style>
+    </head>
+    <body>
+      <h2>Search Results</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Protein ID</th>
+            <th>Symbol</th>
+            <th>Description</th>
+            <th>Organism</th>
+            <th>Gene Type</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${results.map(protein => `
+            <tr>
+              <td>${protein["Dark_protein ID"]}</td>
+              <td>${protein.ncbi_gene_Symbol}</td>
+              <td>${protein.Description}</td>
+              <td>${protein.TaxonomicName}</td>
+              <td>${protein.GeneType}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </body>
+    </html>
+  `);
 }
+
 function renderTable(results) {
   const tbody = document.querySelector('#resultsTable tbody');
   tbody.innerHTML = '';
@@ -86,5 +132,6 @@ function renderTable(results) {
     tbody.appendChild(row);
   });
 }
+
 
 
