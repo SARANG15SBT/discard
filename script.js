@@ -54,7 +54,7 @@ function prevSlide() {
 // ✅ Search function with category
 function performSearch() {
   const query = document.getElementById('searchInput').value.toLowerCase();
-  const category = document.getElementById('categorySelect').value;
+  const category = document.getElementById('categorySelect').value.toLowerCase();
 
   const results = proteinData.filter(protein => {
     const matchesQuery = query
@@ -66,7 +66,7 @@ function performSearch() {
       : true;
 
     const matchesCategory = category
-      ? protein.GeneType.toLowerCase() === category.toLowerCase()
+      ? protein.GeneType.toLowerCase() === category
       : true;
 
     return matchesQuery && matchesCategory;
@@ -74,9 +74,9 @@ function performSearch() {
 
   console.log("Search results:", results);
 
-  // ✅ Open a new window
-  const resultWindow = window.open("", "ResultsWindow", "width=1000,height=600");
-  resultWindow.document.write(`
+  // ✅ Open results in a new tab
+  const resultTab = window.open("", "_blank");
+  resultTab.document.write(`
     <html>
     <head>
       <title>Search Results</title>
@@ -116,6 +116,7 @@ function performSearch() {
   `);
 }
 
+
 function renderTable(results) {
   const tbody = document.querySelector('#resultsTable tbody');
   tbody.innerHTML = '';
@@ -132,6 +133,7 @@ function renderTable(results) {
     tbody.appendChild(row);
   });
 }
+
 
 
 
