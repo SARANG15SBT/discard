@@ -200,4 +200,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, 200);
 });
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const geneType = params.get('geneType');
+  const query = params.get('q');
+
+  if (geneType) {
+    document.getElementById('categorySelect').value = geneType;
+  }
+  if (query) {
+    document.getElementById('searchInput').value = query;
+  }
+
+  // Wait until proteinData is loaded, then filter
+  const checkData = setInterval(() => {
+    if (proteinData.length > 0) {
+      clearInterval(checkData);
+      performSearch(); // reuse your existing search+filter
+    }
+  }, 200);
+});
+
 
