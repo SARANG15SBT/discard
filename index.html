@@ -2,20 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Protein search</title>
+  <title>Protein Database</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: system-ui, Arial, sans-serif; margin: 20px; }
-    .search-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .search-bar { margin-bottom: 20px; }
+    .protein-card { border: 1px solid #ccc; padding: 10px; margin: 5px; width: 200px; }
+    #carouselWrapper { display: flex; gap: 10px; margin-bottom: 20px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ddd; padding: 8px; }
-    th { background: #f7f7f7; text-align: left; }
-    .protein-card { border: 1px solid #ddd; padding: 8px; margin-right: 8px; }
-    #carouselWrapper { display: flex; gap: 8px; margin-bottom: 16px; }
+    th { background: #f4f4f4; }
   </style>
 </head>
 <body>
 
+  <!-- 🔎 Search bar -->
   <div class="search-bar">
     <select id="categorySelect">
       <option value="">--Select Gene Type--</option>
@@ -24,17 +25,17 @@
       <option value="intergenic">Intergenic</option>
     </select>
 
-    <input id="searchInput" type="text" placeholder="Search by ID, Symbol, Organism…" />
-
-    <!-- Important: this button triggers page reload with query string -->
-    <button onclick="reloadWithFilter()">Search</button>
-
-    <!-- Optional: clear filters -->
-    <button onclick="window.location.search=''">Clear</button>
+    <input type="text" id="searchInput" placeholder="Search by Protein ID, Symbol, or Organism…" />
+    <button onclick="performSearch()">Search</button>
+    <button onclick="filterByGeneType()">Filter</button>
   </div>
 
+  <!-- 🎠 Carousel -->
   <div id="carouselWrapper"></div>
+  <button onclick="prevSlide()">Prev</button>
+  <button onclick="nextSlide()">Next</button>
 
+  <!-- 📊 Results table -->
   <table id="resultsTable">
     <thead>
       <tr>
@@ -48,152 +49,7 @@
     <tbody></tbody>
   </table>
 
-  <script>
-  // -------------------- State --------------------
-  let proteinData = [];
-  let currentIndex = 0;
-  let dataReady = false;
-
-  const lower = v => (v ?? '').toString().trim().toLowerCase();
-
-  function normalizeRecord(p) {
-    return {
-      id: p?.['Dark_protein ID'] ?? '',
-      symbol: p?.['ncbi_gene_Symbol'] ?? '',
-      description: p?.['Description'] ?? p?.['ncbi_gene_Description'] ?? '',
-      taxonomicName: p?.['TaxonomicName'] ?? '',
-      geneType: p?.['GeneType'] ?? '',
-      raw: p
-    };
-  }
-
-  // -------------------- Load data --------------------
-  const jsonURL = 'https://sarang15sbt.github.io/protein-database/proteins.json';
-
-  fetch(jsonURL)
-    .then(res => res.json())
-    .then(data => {
-      const arr = Array.isArray(data) ? data : (data && typeof data === 'object' ? [data] : []);
-      proteinData = arr.map(normalizeRecord);
-      dataReady = true;
-
-      renderCarousel(proteinData.slice(0, 3));
-      applyFiltersFromURL(); // apply URL filters first
-      // If no filters, show all
-      if (!hasURLFilters()) {
-        renderTable(proteinData);
-      }
-    })
-    .catch(err => {
-      console.error('Error loading JSON:', err);
-      renderTable([]); // show "No results" if load fails
-    });
-
-  // -------------------- Carousel --------------------
-  function renderCarousel(items) {
-    const wrap = document.getElementById('carouselWrapper');
-    if (!wrap) return;
-    wrap.innerHTML = '';
-    items.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'protein-card';
-      card.innerHTML = `
-        <h4>${item.id}</h4>
-        <p><strong>Symbol:</strong> ${item.symbol}</p>
-        <p><strong>Description:</strong> ${item.description}</p>
-        <p><strong>Organism:</strong> ${item.taxonomicName}</p>
-        <p><strong>Gene Type:</strong> ${item.geneType}</p>
-      `;
-      wrap.appendChild(card);
-    });
-  }
-
-  // -------------------- Filtering --------------------
-  function performSearch() {
-    if (!dataReady) return;
-    const category = lower(document.getElementById('categorySelect')?.value);
-    const query = lower(document.getElementById('searchInput')?.value);
-
-    const results = proteinData.filter(p => {
-      const matchesQuery = query
-        ? (
-            lower(p.id).includes(query) ||
-            lower(p.symbol).includes(query) ||
-            lower(p.description).includes(query) ||
-            lower(p.taxonomicName).includes(query) ||
-            lower(p.geneType).includes(query)
-          )
-        : true;
-
-      const matchesCategory = category ? lower(p.geneType) === category : true;
-      return matchesQuery && matchesCategory;
-    });
-
-    renderTable(results);
-  }
-
-  function reloadWithFilter() {
-    const category = document.getElementById('categorySelect')?.value || '';
-    const query = document.getElementById('searchInput')?.value || '';
-    const params = new URLSearchParams();
-    if (category) params.set('geneType', category);
-    if (query) params.set('q', query);
-    window.location.search = params.toString();
-  }
-
-  function hasURLFilters() {
-    const params = new URLSearchParams(window.location.search);
-    return !!(params.get('geneType') || params.get('q'));
-  }
-
-  function applyFiltersFromURL() {
-    const params = new URLSearchParams(window.location.search);
-    const geneType = params.get('geneType') || '';
-    const q = params.get('q') || '';
-
-    // Reflect URL in controls
-    const catEl = document.getElementById('categorySelect');
-    const qEl = document.getElementById('searchInput');
-    if (catEl && geneType) catEl.value = geneType;
-    if (qEl && q) qEl.value = q;
-
-    // If filters exist, perform search
-    if (geneType || q) performSearch();
-  }
-
-  // -------------------- Table --------------------
-  function renderTable(results) {
-    const tbody = document.querySelector('#resultsTable tbody');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-
-    if (!Array.isArray(results) || results.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No results found</td></tr>`;
-      return;
-    }
-
-    results.forEach(p => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${p.id}</td>
-        <td>${p.symbol}</td>
-        <td>${p.description}</td>
-        <td>${p.taxonomicName}</td>
-        <td>${p.geneType}</td>
-      `;
-      tbody.appendChild(row);
-    });
-  }
-
-  // -------------------- Events --------------------
-  document.addEventListener('DOMContentLoaded', () => {
-    // Filter immediately when dropdown changes (no reload)
-    const categoryEl = document.getElementById('categorySelect');
-    if (categoryEl) {
-      categoryEl.addEventListener('change', performSearch);
-    }
-  });
-  </script>
+  <!-- Link to your JS -->
+  <script src="script.js"></script>
 </body>
 </html>
