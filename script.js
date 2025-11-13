@@ -3,8 +3,11 @@ let proteinData = [];
 let currentIndex = 0;
 const carouselWrapper = document.getElementById('carouselWrapper');
 
-// ✅ Load protein data from JSON file
-fetch('data/proteins.json')
+// ✅ Load protein data from JSON file hosted on GitHub Pages
+// Replace with your actual GitHub Pages URL
+const jsonURL = 'https://sarang15sbt.github.io/protein-database/proteins.json';
+
+fetch(jsonURL)
   .then(res => res.json())
   .then(data => {
     proteinData = data;
@@ -56,9 +59,9 @@ function performSearch() {
   const results = proteinData.filter(protein => {
     const matchesQuery = query
       ? (protein["Dark_protein ID"].toLowerCase().includes(query) ||
-        protein.ncbi_gene_Symbol.toLowerCase().includes(query) ||
-        protein.Description.toLowerCase().includes(query) ||
-        protein.TaxonomicName.toLowerCase().includes(query))
+         protein.ncbi_gene_Symbol.toLowerCase().includes(query) ||
+         protein.Description.toLowerCase().includes(query) ||
+         protein.TaxonomicName.toLowerCase().includes(query))
       : true;
 
     const matchesCategory = category
@@ -71,4 +74,3 @@ function performSearch() {
   console.log("Search results:", results);
   renderCarousel(results.slice(0, 3)); // show first 3 results
 }
-
