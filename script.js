@@ -53,8 +53,8 @@ function prevSlide() {
 
 // ✅ Search function with category
 function performSearch() {
-  const query = document.getElementById('searchInput').value.toLowerCase();
   const category = document.getElementById('categorySelect').value.toLowerCase();
+  const query = document.getElementById('searchInput').value.toLowerCase();
 
   const results = proteinData.filter(protein => {
     const matchesQuery = query
@@ -72,49 +72,32 @@ function performSearch() {
     return matchesQuery && matchesCategory;
   });
 
-  console.log("Search results:", results);
-
-  // ✅ Open results in a new tab
-  const resultTab = window.open("", "_blank");
-  resultTab.document.write(`
-    <html>
-    <head>
-      <title>Search Results</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background-color: #333; color: white; }
-      </style>
-    </head>
-    <body>
-      <h2>Search Results</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Protein ID</th>
-            <th>Symbol</th>
-            <th>Description</th>
-            <th>Organism</th>
-            <th>Gene Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${results.map(protein => `
-            <tr>
-              <td>${protein["Dark_protein ID"]}</td>
-              <td>${protein.ncbi_gene_Symbol}</td>
-              <td>${protein.Description}</td>
-              <td>${protein.TaxonomicName}</td>
-              <td>${protein.GeneType}</td>
-            </tr>
-          `).join('')}
-        </tbody>
-      </table>
-    </body>
-    </html>
-  `);
+  renderTable(results);
 }
+
+// ✅ Render results in the same tab
+function renderTable(results) {
+  const tbody = document.querySelector('#resultsTable tbody');
+  tbody.innerHTML = '';
+
+  if (results.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No results found</td></tr>`;
+    return;
+  }
+
+  results.forEach(protein => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${protein["Dark_protein ID"]}</td>
+      <td>${protein.ncbi_gene_Symbol}</td>
+      <td>${protein.Description}</td>
+      <td>${protein.TaxonomicName}</td>
+      <td>${protein.GeneType}</td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
 
 
 function renderTable(results) {
@@ -133,6 +116,7 @@ function renderTable(results) {
     tbody.appendChild(row);
   });
 }
+
 
 
 
