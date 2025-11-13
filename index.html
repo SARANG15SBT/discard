@@ -24,25 +24,19 @@
 
 <div class="container">
 
+  <!-- 🔎 Search Bar -->
   <div class="search-bar">
     <select id="categorySelect">
-      <option value="">--Select Category--</option>
-      <optgroup label="Category I: Non-expressing">
-        <option value="antisense_dna">Antisense DNA</option>
-        <option value="reverse_coding_dna">Reverse coding DNA</option>
-        <option value="repetitive_sequences">Repetitive sequences</option>
-      </optgroup>
-      <optgroup label="Category II: RNA expressing">
-        <option value="trna_sequences">tRNA sequences</option>
-        <option value="lncRNA_sequences">Long non-coding RNA sequences</option>
-        <option value="rrna_sequences">Ribosomal RNA</option>
-        <option value="introns">Introns</option>
-      </optgroup>
+      <option value="">--Select Gene Type--</option>
+      <option value="antisense">Antisense</option>
+      <option value="reverse">Reverse</option>
+      <option value="intergenic">Intergenic</option>
     </select>
-    <input type="text" id="searchInput" placeholder="Search by Protein Name or Gene ID…">
+    <input type="text" id="searchInput" placeholder="Search by Protein ID, Symbol, or Organism…">
     <button onclick="performSearch()">Search</button>
   </div>
 
+  <!-- ℹ️ Info Section -->
   <div class="info-section">
     <div class="info-box">
       <h3>Explore Proteins</h3>
@@ -58,6 +52,7 @@
     </div>
   </div>
 
+  <!-- ⭐ Featured Section -->
   <div class="featured-section">
     <h2 style="text-align:center; margin-bottom:20px;">Featured Synthetic Proteins</h2>
     <div class="carousel-container">
@@ -67,6 +62,23 @@
         <button class="carousel-btn" onclick="nextSlide()">Next</button>
       </div>
     </div>
+  </div>
+
+  <!-- 📊 Search Results Table -->
+  <div id="resultsSection">
+    <h2 style="text-align:center; margin-top:30px;">Search Results</h2>
+    <table id="resultsTable">
+      <thead>
+        <tr>
+          <th>Protein ID</th>
+          <th>Symbol</th>
+          <th>Description</th>
+          <th>Organism</th>
+          <th>Gene Type</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
   </div>
 
 </div>
